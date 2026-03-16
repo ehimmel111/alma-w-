@@ -1,0 +1,2350 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ALMA-W：酒精使用生活型態醫學週追蹤工具</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --primary: #4A90D9;
+  --primary-dark: #2c6ba8;
+  --secondary: #6EC6A0;
+  --accent: #F5A623;
+  --danger: #E74C3C;
+  --warning: #F39C12;
+  --success: #27AE60;
+  --bg: #F0F4F8;
+  --card: #FFFFFF;
+  --text: #2D3748;
+  --text-light: #718096;
+  --border: #E2E8F0;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --radius: 14px;
+  /* Pillar colors */
+  --p1: #E74C3C;
+  --p2: #3498DB;
+  --p3: #9B59B6;
+  --p4: #27AE60;
+  --p5: #F39C12;
+  --p6: #1ABC9C;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+}
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── HEADER ── */
+.app-header {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  padding: 16px 20px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+.app-header h1 { font-size: 17px; font-weight: 700; }
+.app-header p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+.header-row { display: flex; justify-content: space-between; align-items: center; }
+
+/* ── CONTAINER ── */
+.container { max-width: 700px; margin: 0 auto; padding: 20px 16px 80px; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 16px; font-weight: 700;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title .icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+
+/* ── WELCOME PAGE ── */
+.hero {
+  background: linear-gradient(135deg, #4A90D9, #2c6ba8);
+  border-radius: 20px;
+  padding: 36px 24px;
+  text-align: center;
+  color: white;
+  margin-bottom: 24px;
+}
+.hero h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.hero p { opacity: 0.9; font-size: 14px; line-height: 1.6; }
+.hero-logo { font-size: 48px; margin-bottom: 12px; }
+
+.pillars-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  margin-bottom: 20px;
+}
+.pillar-chip {
+  padding: 10px 6px; border-radius: 12px;
+  text-align: center; font-size: 12px; font-weight: 600;
+  color: white;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px; padding: 13px 24px;
+  border: none; border-radius: 12px; cursor: pointer;
+  font-size: 15px; font-weight: 600;
+  transition: all 0.2s; text-decoration: none;
+  width: 100%; margin-bottom: 10px;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-secondary { background: var(--secondary); color: white; }
+.btn-secondary:hover { background: #5aad8a; }
+.btn-outline {
+  background: transparent; color: var(--primary);
+  border: 2px solid var(--primary);
+}
+.btn-outline:hover { background: var(--primary); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-warning { background: var(--warning); color: white; }
+.btn-success { background: var(--success); color: white; }
+.btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 8px; width: auto; margin-bottom: 0; }
+.btn-icon { padding: 8px; width: auto; border-radius: 8px; }
+
+/* ── FORMS ── */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--text-light); margin-bottom: 6px;
+}
+.form-control {
+  width: 100%; padding: 12px 14px;
+  border: 2px solid var(--border); border-radius: 10px;
+  font-size: 15px; color: var(--text);
+  transition: border-color 0.2s;
+  background: white;
+}
+.form-control:focus { outline: none; border-color: var(--primary); }
+textarea.form-control { min-height: 80px; resize: vertical; }
+
+/* ── QUESTIONNAIRE ── */
+.section-header {
+  background: linear-gradient(135deg, var(--card), #f8f9ff);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border-left: 5px solid var(--primary);
+  box-shadow: var(--shadow);
+}
+.section-header h3 { font-size: 16px; font-weight: 700; color: var(--primary); }
+.section-header p { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+.section-num {
+  display: inline-block;
+  background: var(--primary);
+  color: white; border-radius: 6px;
+  padding: 2px 8px; font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.question-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid transparent;
+}
+.question-card.answered { border-left-color: var(--success); }
+.question-num {
+  font-size: 12px; color: var(--text-light); font-weight: 600;
+  margin-bottom: 6px;
+}
+.question-text {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  margin-bottom: 14px; line-height: 1.5;
+}
+
+.options-list { list-style: none; }
+.option-item { margin-bottom: 8px; }
+.option-label {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px;
+  border: 2px solid var(--border); border-radius: 10px;
+  cursor: pointer; transition: all 0.2s;
+  font-size: 14px; line-height: 1.4;
+}
+.option-label:hover { border-color: var(--primary); background: #f0f7ff; }
+.option-input { display: none; }
+.option-input:checked + .option-label {
+  border-color: var(--primary); background: #e8f4fd;
+  color: var(--primary-dark); font-weight: 600;
+}
+.option-score {
+  min-width: 26px; height: 26px;
+  background: var(--border); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.option-input:checked ~ .option-score { background: var(--primary); color: white; }
+
+/* ── PROGRESS BAR ── */
+.progress-bar-wrap {
+  background: var(--border); border-radius: 100px;
+  height: 8px; margin: 8px 0;
+}
+.progress-bar-fill {
+  height: 8px; border-radius: 100px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  transition: width 0.4s ease;
+}
+.progress-info {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-light);
+}
+
+/* ── RESULTS PAGE ── */
+.score-hero {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 20px; padding: 28px 20px;
+  text-align: center; color: white; margin-bottom: 20px;
+}
+.total-score { font-size: 60px; font-weight: 900; line-height: 1; }
+.total-max { font-size: 18px; opacity: 0.8; }
+.score-label { font-size: 14px; opacity: 0.9; margin-top: 6px; }
+
+.pillar-scores { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+.pillar-score-item {
+  background: var(--card); border-radius: 12px;
+  padding: 14px; text-align: center; box-shadow: var(--shadow);
+}
+.pillar-score-item .emoji { font-size: 24px; }
+.pillar-score-item .name { font-size: 12px; color: var(--text-light); margin: 4px 0; }
+.pillar-score-item .score { font-size: 22px; font-weight: 800; }
+.pillar-score-item .max { font-size: 11px; color: var(--text-light); }
+.pillar-score-item .bar { margin-top: 8px; height: 6px; background: #eee; border-radius: 3px; }
+.pillar-score-item .bar-fill { height: 6px; border-radius: 3px; }
+
+.radar-container { position: relative; max-width: 340px; margin: 0 auto 20px; }
+
+.interpretation-card {
+  border-radius: 14px; padding: 16px 18px; margin-bottom: 10px;
+  border-left: 5px solid;
+}
+.interp-excellent { background: #f0fff4; border-color: var(--success); }
+.interp-good { background: #fffbeb; border-color: var(--warning); }
+.interp-moderate { background: #fff5f5; border-color: var(--danger); }
+
+/* ── TABS ── */
+.tabs {
+  display: flex; gap: 4px; margin-bottom: 16px;
+  background: var(--bg); border-radius: 12px; padding: 4px;
+}
+.tab {
+  flex: 1; padding: 10px 6px; text-align: center;
+  border: none; background: transparent; cursor: pointer;
+  border-radius: 9px; font-size: 13px; font-weight: 600;
+  color: var(--text-light); transition: all 0.2s;
+}
+.tab.active { background: white; color: var(--primary); box-shadow: var(--shadow); }
+
+/* ── ADMIN PANEL ── */
+.admin-header {
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: white; padding: 18px 20px;
+}
+.admin-nav {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  background: #2c3e50; padding: 10px 16px;
+}
+.admin-nav-btn {
+  padding: 8px 14px; border: none; cursor: pointer;
+  border-radius: 8px; font-size: 13px; font-weight: 600;
+  color: rgba(255,255,255,0.7); background: transparent;
+  transition: all 0.2s;
+}
+.admin-nav-btn.active, .admin-nav-btn:hover {
+  background: rgba(255,255,255,0.15); color: white;
+}
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; border-radius: 12px; }
+table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  background: white; border-radius: 12px; overflow: hidden;
+}
+th {
+  background: #f7fafc; padding: 12px 10px;
+  text-align: left; font-weight: 700; color: var(--text-light);
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  padding: 11px 10px; border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f7fafc; }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-block; padding: 3px 8px;
+  border-radius: 100px; font-size: 11px; font-weight: 700;
+}
+.badge-green { background: #e6ffed; color: var(--success); }
+.badge-yellow { background: #fffbeb; color: #b7791f; }
+.badge-red { background: #fff5f5; color: var(--danger); }
+.badge-blue { background: #ebf8ff; color: var(--primary); }
+
+/* ── CHART CONTAINER ── */
+.chart-container { position: relative; height: 280px; width: 100%; }
+
+/* ── HISTORY ── */
+.history-item {
+  padding: 14px 16px;
+  border-radius: 10px; background: var(--bg);
+  margin-bottom: 8px; cursor: pointer;
+  transition: all 0.2s;
+  border-left: 4px solid var(--primary);
+}
+.history-item:hover { background: #e8f4fd; }
+.history-date { font-weight: 700; font-size: 14px; }
+.history-score { color: var(--primary); font-size: 13px; font-weight: 600; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); z-index: 1000;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: white; border-radius: 20px;
+  padding: 24px; max-width: 480px; width: 100%;
+  max-height: 85vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+.modal-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+.modal-close {
+  float: right; background: none; border: none;
+  font-size: 22px; cursor: pointer; color: var(--text-light);
+  line-height: 1;
+}
+
+/* ── REMINDER BADGE ── */
+.reminder-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #fff3e0; color: #e65100;
+  border-radius: 100px; padding: 4px 10px;
+  font-size: 12px; font-weight: 600;
+}
+
+/* ── ALERT ── */
+.alert {
+  padding: 12px 16px; border-radius: 10px;
+  font-size: 14px; margin-bottom: 12px;
+}
+.alert-info { background: #ebf8ff; color: #2b6cb0; border-left: 4px solid var(--primary); }
+.alert-warning { background: #fffbeb; color: #744210; border-left: 4px solid var(--warning); }
+.alert-success { background: #f0fff4; color: #276749; border-left: 4px solid var(--success); }
+.alert-danger { background: #fff5f5; color: #9b2335; border-left: 4px solid var(--danger); }
+
+/* ── STICKY BOTTOM ── */
+.sticky-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: white; padding: 12px 16px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.1); z-index: 50;
+}
+
+/* ── ANIMATION ── */
+@keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.animate-in { animation: fadeIn 0.4s ease forwards; }
+
+/* ── QUESTION EDITOR ── */
+.q-editor-item {
+  background: var(--bg); border-radius: 12px;
+  padding: 14px; margin-bottom: 10px;
+}
+.q-editor-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.q-editor-header span { font-weight: 700; font-size: 13px; color: var(--text-light); }
+
+/* ── PATIENT SELECTOR ── */
+.patient-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 100px;
+  background: #ebf8ff; color: var(--primary); font-size: 13px;
+  font-weight: 600; margin: 3px; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.2s;
+}
+.patient-tag.active { border-color: var(--primary); background: var(--primary); color: white; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 480px) {
+  .pillars-grid { grid-template-columns: repeat(2, 1fr); }
+  .pillar-scores { grid-template-columns: repeat(2, 1fr); }
+  .total-score { font-size: 48px; }
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── LOADING ── */
+.spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top-color: white; border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.section-divider {
+  height: 1px; background: var(--border);
+  margin: 20px 0;
+}
+
+/* Admin chart containers */
+.chart-wrap {
+  background: white; border-radius: 14px;
+  padding: 16px; box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+.chart-wrap h4 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+
+.input-row { display: flex; gap: 8px; align-items: flex-end; }
+.input-row .form-group { flex: 1; margin-bottom: 0; }
+
+.no-data {
+  text-align: center; padding: 40px 20px;
+  color: var(--text-light); font-size: 14px;
+}
+.no-data .icon { font-size: 40px; margin-bottom: 8px; }
+
+/* comparison table pillar header */
+.pillar-th {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding: 8px 6px !important;
+  font-size: 11px !important;
+  min-width: 40px;
+}
+.heat-low { background: #f0fff4 !important; }
+.heat-mid { background: #fffbeb !important; }
+.heat-high { background: #fff5f5 !important; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     PAGE 0: WELCOME / LOGIN
+════════════════════════════════════════════ -->
+<div id="page-welcome" class="page active">
+  <div class="app-header">
+    <div class="header-row">
+      <div>
+        <h1>🌿 ALMA-W</h1>
+        <p>酒精使用生活型態醫學週追蹤工具</p>
+      </div>
+      <div id="reminder-badge" class="reminder-badge" style="display:none">
+        🔔 本週未填
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="hero animate-in" id="welcome-hero">
+      <div class="hero-logo">💚</div>
+      <h2>您好，歡迎您來到<br>本週的生活檢視時間</h2>
+      <p style="margin-top:12px;line-height:1.9;text-align:left">
+        這份追蹤是讓我們一起了解：<br>
+        ✓ 這一週您過得如何<br>
+        ✓ 什麼對您有幫助<br>
+        ✓ 哪裡需要我們的支持
+      </p>
+      <div style="margin-top:16px;padding:12px 16px;background:rgba(255,255,255,0.18);border-radius:12px;font-size:13px;line-height:1.8">
+        🕐 預計時間：8-10 分鐘<br>
+        您可以隨時暫停，<br>
+        準備好了嗎？讓我們開始吧 →
+      </div>
+    </div>
+
+    <div class="pillars-grid animate-in">
+      <div class="pillar-chip" style="background:var(--p1)">🔍 危害物質</div>
+      <div class="pillar-chip" style="background:var(--p2)">😴 睡眠</div>
+      <div class="pillar-chip" style="background:var(--p3)">🧘 壓力管理</div>
+      <div class="pillar-chip" style="background:var(--p4)">🥦 均衡飲食</div>
+      <div class="pillar-chip" style="background:var(--p5)">🏃 規律運動</div>
+      <div class="pillar-chip" style="background:var(--p6)">🤝 社交連結</div>
+    </div>
+
+    <div class="card animate-in">
+      <div class="card-title">📋 開始填寫問卷</div>
+      <div class="form-group">
+        <label class="form-label">您的姓名（或暱稱）</label>
+        <input type="text" id="patient-name" class="form-control" placeholder="輸入姓名或暱稱">
+      </div>
+      <div class="form-group">
+        <label class="form-label">個案編號（選填）</label>
+        <input type="text" id="patient-id" class="form-control" placeholder="輸入個案編號">
+      </div>
+      <button class="btn btn-primary" onclick="startQuestionnaire()">🚀 開始本週問卷</button>
+      <button class="btn btn-outline" onclick="viewHistory()">📊 查看我的歷史紀錄</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔐 個管師後台</div>
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:14px">個案管理師專用後台，可查看追蹤數據、編輯題目與管理個案。</p>
+      <div class="form-group">
+        <label class="form-label">管理員密碼</label>
+        <input type="password" id="admin-password" class="form-control" placeholder="輸入後台密碼" onkeyup="if(event.key==='Enter')adminLogin()">
+      </div>
+      <button class="btn btn-secondary" onclick="adminLogin()">🏥 進入個管師後台</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔔 每週填寫提醒</div>
+      <p id="reminder-status" style="font-size:13px;color:var(--text-light);margin-bottom:12px">設定每週提醒，系統將在您開啟頁面時提示您填寫。</p>
+      <div class="input-row">
+        <div class="form-group">
+          <label class="form-label">提醒星期</label>
+          <select id="reminder-day" class="form-control">
+            <option value="1">星期一</option>
+            <option value="2">星期二</option>
+            <option value="3">星期三</option>
+            <option value="4">星期四</option>
+            <option value="5">星期五</option>
+            <option value="6">星期六</option>
+            <option value="0">星期日</option>
+          </select>
+        </div>
+        <div style="padding-bottom:16px">
+          <button class="btn btn-warning btn-sm" onclick="setReminder()">設定提醒</button>
+        </div>
+      </div>
+      <div id="reminder-info" style="font-size:12px;color:var(--text-light)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     PAGE 1: QUESTIONNAIRE
+════════════════════════════════════════════ -->
+<div id="page-questionnaire" class="page">
+  <div class="app-header">
+    <div class="header-row">
+      <div>
+        <h1>📝 ALMA-W 週追蹤問卷</h1>
+        <p id="q-patient-name-display">正在填寫...</p>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:auto;color:white;border-color:rgba(255,255,255,0.5)" onclick="goBack()">✕ 離開</button>
+    </div>
+    <div style="margin-top:10px">
+      <div class="progress-info">
+        <span id="progress-text">0 / 30 題</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="container" id="questionnaire-container">
+    <!-- Questions rendered here -->
+  </div>
+  <div class="sticky-bottom">
+    <button class="btn btn-primary" id="submit-btn" onclick="submitQuestionnaire()" style="margin-bottom:0">
+      🎯 完成問卷並查看結果
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     PAGE 2: RESULTS
+════════════════════════════════════════════ -->
+<div id="page-results" class="page">
+  <div class="app-header">
+    <div class="header-row">
+      <div>
+        <h1>📊 本週評估結果</h1>
+        <p id="result-date-display"></p>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:auto;color:white;border-color:rgba(255,255,255,0.5)" onclick="showPage('page-welcome')">🏠 首頁</button>
+    </div>
+  </div>
+  <div class="container">
+    <div id="score-hero-section"></div>
+    <div id="pillar-scores-section"></div>
+    <div class="card">
+      <div class="card-title">🕷️ 六大支柱雷達圖</div>
+      <div class="radar-container">
+        <canvas id="radarChart"></canvas>
+      </div>
+      <p style="font-size:11px;color:var(--text-light);text-align:center;margin-top:8px">數值越高代表該支柱健康狀態越好</p>
+    </div>
+    <div id="interpretation-section"></div>
+    <div id="pillar-detail-section"></div>
+
+    <div class="card">
+      <div class="card-title">📈 歷史趨勢（本人）</div>
+      <div class="chart-container">
+        <canvas id="personalTrendChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card" style="background:linear-gradient(135deg,#f0fff8,#e6fffa);border-left:5px solid #1ABC9C">
+      <div class="card-title" style="color:#0d9e7e">🎉 完成了！感謝您今天花時間關心自己。</div>
+      <div style="font-size:14px;color:#2D3748;line-height:1.9;margin-bottom:14px">
+        <strong>接下來會發生什麼？</strong><br>
+        📋 個案管理師會在工作日 48 小時內查看這份問卷<br>
+        📞 如果有需要特別關注的地方，我們會主動聯繫您<br>
+        🗓️ 下次會談時，我們會一起討論這份紀錄
+      </div>
+      <div style="padding:12px 14px;background:rgba(255,255,255,0.7);border-radius:10px;font-size:13px;color:#4A5568;line-height:1.9">
+        💚 <strong>記得：</strong><br>
+        每一天都是新的開始。<br>
+        每一個選擇都在改變。<br>
+        <strong>高醫岡山醫院關心您。</strong>
+      </div>
+    </div>
+    <div class="card" style="border-left:5px solid #E74C3C">
+      <div class="card-title" style="color:#E74C3C">🆘 緊急資源</div>
+      <p style="font-size:13px;color:#718096;margin-bottom:12px">如果您現在需要幫助，請聯繫：</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <a href="tel:1925" style="text-decoration:none"><div style="background:#f0fff4;border-radius:10px;padding:12px;text-align:center;border:1.5px solid #9AE6B4"><div style="font-size:20px">📞</div><div style="font-size:18px;font-weight:900;color:#276749">1925</div><div style="font-size:11px;color:#276749">安心專線<br>心理支持</div></div></a>
+        <a href="tel:1995" style="text-decoration:none"><div style="background:#ebf8ff;border-radius:10px;padding:12px;text-align:center;border:1.5px solid #90CDF4"><div style="font-size:20px">📞</div><div style="font-size:18px;font-weight:900;color:#2b6cb0">1995</div><div style="font-size:11px;color:#2b6cb0">生命線<br>24 小時</div></div></a>
+        <a href="tel:119" style="text-decoration:none"><div style="background:#fff5f5;border-radius:10px;padding:12px;text-align:center;border:1.5px solid #FEB2B2"><div style="font-size:20px">📞</div><div style="font-size:18px;font-weight:900;color:#9b2335">119</div><div style="font-size:11px;color:#9b2335">緊急醫療</div></div></a>
+        <a href="tel:113" style="text-decoration:none"><div style="background:#fffbeb;border-radius:10px;padding:12px;text-align:center;border:1.5px solid #FAF089"><div style="font-size:20px">📞</div><div style="font-size:18px;font-weight:900;color:#744210">113</div><div style="font-size:11px;color:#744210">保護專線</div></div></a>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="showPage('page-welcome')">🏠 回到首頁</button>
+    <button class="btn btn-outline" onclick="viewHistory()">📋 查看全部歷史</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     PAGE 3: HISTORY (Personal)
+════════════════════════════════════════════ -->
+<div id="page-history" class="page">
+  <div class="app-header">
+    <div class="header-row">
+      <div>
+        <h1>📋 歷史紀錄</h1>
+        <p id="history-patient-label">個人填寫紀錄</p>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:auto;color:white;border-color:rgba(255,255,255,0.5)" onclick="showPage('page-welcome')">← 返回</button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="card">
+      <div class="card-title">📈 各支柱進步曲線</div>
+      <div class="chart-container" style="height:300px">
+        <canvas id="historyLineChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 填寫紀錄列表</div>
+      <div id="history-list"></div>
+    </div>
+    <button class="btn btn-outline" onclick="showPage('page-welcome')">← 返回首頁</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     PAGE 4: ADMIN BACKEND
+════════════════════════════════════════════ -->
+<div id="page-admin" class="page">
+  <div class="admin-header">
+    <div class="header-row">
+      <div>
+        <h1 style="font-size:18px;font-weight:800">🏥 個管師後台</h1>
+        <p style="font-size:12px;opacity:0.8">ALMA-W 管理系統</p>
+      </div>
+      <button class="btn btn-sm" style="width:auto;background:rgba(255,255,255,0.15);color:white;border:none" onclick="adminLogout()">登出</button>
+    </div>
+  </div>
+  <div class="admin-nav">
+    <button class="admin-nav-btn active" onclick="switchAdminTab('dashboard')" id="atab-dashboard">📊 儀表板</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('patients')" id="atab-patients">👥 個案管理</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('comparison')" id="atab-comparison">📋 比較表</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('trends')" id="atab-trends">📈 趨勢圖</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('editor')" id="atab-editor">✏️ 題目編輯</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('settings')" id="atab-settings">⚙️ 設定</button>
+  </div>
+
+  <div class="container" style="padding-top:16px">
+    <!-- DASHBOARD -->
+    <div id="admin-tab-dashboard">
+      <div id="admin-summary-cards" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px"></div>
+      <div class="chart-wrap">
+        <h4>📊 所有個案平均支柱分數（本週）</h4>
+        <div class="chart-container">
+          <canvas id="adminRadarChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <h4>📈 全體平均總分趨勢</h4>
+        <div class="chart-container">
+          <canvas id="adminTrendChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATIENTS -->
+    <div id="admin-tab-patients" style="display:none">
+      <div class="card">
+        <div class="card-title">➕ 新增個案</div>
+        <div class="input-row">
+          <div class="form-group">
+            <label class="form-label">姓名</label>
+            <input type="text" id="new-patient-name" class="form-control" placeholder="個案姓名">
+          </div>
+          <div class="form-group">
+            <label class="form-label">編號</label>
+            <input type="text" id="new-patient-id" class="form-control" placeholder="編號（選填）">
+          </div>
+          <div style="padding-bottom:16px">
+            <button class="btn btn-primary btn-sm" onclick="addPatient()">新增</button>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="patients-table">
+          <thead>
+            <tr>
+              <th>姓名</th>
+              <th>編號</th>
+              <th>填寫次數</th>
+              <th>最近填寫</th>
+              <th>最近總分</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="patients-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- COMPARISON -->
+    <div id="admin-tab-comparison" style="display:none">
+      <div class="alert alert-info">選擇要比較的個案（可多選），查看各支柱分數對比表。</div>
+      <div id="patient-selector" class="tag-list" style="margin-bottom:14px"></div>
+      <div class="table-wrap">
+        <table id="comparison-table">
+          <thead id="comparison-thead"></thead>
+          <tbody id="comparison-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TRENDS -->
+    <div id="admin-tab-trends" style="display:none">
+      <div class="alert alert-info">選擇個案查看各週支柱趨勢圖。</div>
+      <div class="form-group">
+        <label class="form-label">選擇個案</label>
+        <select id="trend-patient-select" class="form-control" onchange="renderTrendCharts()">
+          <option value="">--- 選擇個案 ---</option>
+        </select>
+      </div>
+      <div id="trend-charts-container"></div>
+    </div>
+
+    <!-- EDITOR -->
+    <div id="admin-tab-editor" style="display:none">
+      <div class="alert alert-warning">⚠️ 編輯題目後，新的設定將套用至之後的問卷填寫。現有歷史紀錄不受影響。</div>
+      <div id="question-editor-container"></div>
+      <button class="btn btn-success" onclick="saveQuestions()">💾 儲存所有題目變更</button>
+      <button class="btn btn-outline" onclick="resetQuestions()">↩️ 恢復預設題目</button>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="admin-tab-settings" style="display:none">
+      <div class="card">
+        <div class="card-title">🔑 修改後台密碼</div>
+        <div class="form-group">
+          <label class="form-label">目前密碼</label>
+          <input type="password" id="current-pw" class="form-control" placeholder="輸入目前密碼">
+        </div>
+        <div class="form-group">
+          <label class="form-label">新密碼</label>
+          <input type="password" id="new-pw" class="form-control" placeholder="輸入新密碼">
+        </div>
+        <div class="form-group">
+          <label class="form-label">確認新密碼</label>
+          <input type="password" id="confirm-pw" class="form-control" placeholder="再次輸入新密碼">
+        </div>
+        <button class="btn btn-primary" onclick="changePassword()">更新密碼</button>
+      </div>
+      <div class="card">
+        <div class="card-title">📤 資料管理</div>
+        <button class="btn btn-outline" onclick="exportData()">⬇️ 匯出所有資料（JSON）</button>
+        <button class="btn btn-warning" onclick="importDataClick()">⬆️ 匯入資料（JSON）</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        <div class="section-divider"></div>
+        <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清除所有資料</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: Detail Record View
+════════════════════════════════════════ -->
+<div id="modal-detail" class="modal-overlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('modal-detail')">✕</button>
+    <div id="modal-detail-content"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL: Alert
+════════════════════════════════════════ -->
+<div id="modal-alert" class="modal-overlay">
+  <div class="modal-box" style="max-width:340px;text-align:center">
+    <div id="modal-alert-icon" style="font-size:42px;margin-bottom:10px"></div>
+    <div id="modal-alert-title" class="modal-title" style="justify-content:center"></div>
+    <div id="modal-alert-body" style="font-size:14px;color:var(--text-light);margin-bottom:18px"></div>
+    <button class="btn btn-primary" onclick="closeModal('modal-alert')">確認</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA STORE
+// ══════════════════════════════════════════
+const STORAGE_KEY = 'alma_w_data';
+const DEFAULT_PASSWORD = 'almaw2024';
+
+function loadData() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return getDefaultData();
+  try { return JSON.parse(raw); } catch(e) { return getDefaultData(); }
+}
+
+function saveData(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function getDefaultData() {
+  return {
+    password: DEFAULT_PASSWORD,
+    patients: [],
+    records: [],  // [{patientKey, date, scores, pillars, name}]
+    questions: JSON.parse(JSON.stringify(DEFAULT_QUESTIONS)),
+    reminder: { enabled: false, day: 1, lastFilled: null }
+  };
+}
+
+// ══════════════════════════════════════════
+// DEFAULT QUESTIONS DATA
+// ══════════════════════════════════════════
+const DEFAULT_QUESTIONS = [
+  // Section 1: 危害物質管理 (pillar index 0)
+  {
+    id: 1, section: 0, sectionName: '危害物質管理',
+    text: '過去這一週，您有幾天喝了含酒精的飲料？',
+    options: [
+      { score: 0, text: '0 天（完全沒喝）' },
+      { score: 1, text: '1-2 天' },
+      { score: 2, text: '3-4 天' },
+      { score: 3, text: '5-6 天' },
+      { score: 4, text: '每天都喝' }
+    ]
+  },
+  {
+    id: 2, section: 0, sectionName: '危害物質管理',
+    text: '當您喝酒時，一次大約喝幾杯（標準杯）？',
+    options: [
+      { score: 0, text: '0 杯（本週未喝酒）' },
+      { score: 1, text: '1-2 杯' },
+      { score: 2, text: '3-4 杯' },
+      { score: 3, text: '5-6 杯' },
+      { score: 4, text: '7 杯以上' }
+    ]
+  },
+  {
+    id: 3, section: 0, sectionName: '危害物質管理',
+    text: '這一週內，您有多想喝酒（渴求感）？',
+    options: [
+      { score: 0, text: '完全不想' },
+      { score: 1, text: '偶爾有一點點想' },
+      { score: 2, text: '有時候會想' },
+      { score: 3, text: '經常想喝酒' },
+      { score: 4, text: '時時刻刻都想喝' }
+    ]
+  },
+  {
+    id: 4, section: 0, sectionName: '危害物質管理',
+    text: '因為飲酒，您無法做好原本該做的事情（如工作、家務）？',
+    options: [
+      { score: 0, text: '完全沒有' },
+      { score: 1, text: '很少（1-2 天）' },
+      { score: 2, text: '偶爾（3-4 天）' },
+      { score: 3, text: '經常（5-6 天）' },
+      { score: 4, text: '幾乎每天都有' }
+    ]
+  },
+  {
+    id: 5, section: 0, sectionName: '危害物質管理',
+    text: '當您停止喝酒後，是否出現不舒服症狀（如手抖、冒汗、焦慮）？',
+    options: [
+      { score: 0, text: '完全沒有' },
+      { score: 1, text: '很輕微' },
+      { score: 2, text: '有一些症狀' },
+      { score: 3, text: '蠻明顯的' },
+      { score: 4, text: '非常嚴重' }
+    ]
+  },
+  {
+    id: 6, section: 0, sectionName: '危害物質管理',
+    text: '您多有信心可以繼續減少或戒除飲酒？',
+    options: [
+      { score: 0, text: '非常有信心' },
+      { score: 1, text: '有些信心' },
+      { score: 2, text: '一半一半' },
+      { score: 3, text: '不太有信心' },
+      { score: 4, text: '完全沒信心' }
+    ]
+  },
+  // Section 2: 修復式睡眠 (pillar index 1)
+  {
+    id: 7, section: 1, sectionName: '修復式睡眠',
+    text: '這一週每晚您實際睡了幾個小時？',
+    options: [
+      { score: 0, text: '7 小時以上（睡眠充足）' },
+      { score: 1, text: '6-7 小時' },
+      { score: 2, text: '5-6 小時' },
+      { score: 3, text: '4-5 小時' },
+      { score: 4, text: '不到 4 小時' }
+    ]
+  },
+  {
+    id: 8, section: 1, sectionName: '修復式睡眠',
+    text: '躺在床上後，通常需要多久才能睡著？',
+    options: [
+      { score: 0, text: '不到 15 分鐘' },
+      { score: 1, text: '15-30 分鐘' },
+      { score: 2, text: '30-60 分鐘' },
+      { score: 3, text: '1-2 小時' },
+      { score: 4, text: '超過 2 小時' }
+    ]
+  },
+  {
+    id: 9, section: 1, sectionName: '修復式睡眠',
+    text: '這一週半夜或清晨醒來的情況如何？',
+    options: [
+      { score: 0, text: '完全沒有' },
+      { score: 1, text: '每週不到 1 次' },
+      { score: 2, text: '每週 1-2 次' },
+      { score: 3, text: '每週 3-4 次' },
+      { score: 4, text: '幾乎每天都醒來' }
+    ]
+  },
+  {
+    id: 10, section: 1, sectionName: '修復式睡眠',
+    text: '整體而言，您對這一週的睡眠品質滿意嗎？',
+    options: [
+      { score: 0, text: '非常滿意' },
+      { score: 1, text: '還算滿意' },
+      { score: 2, text: '普通，還好' },
+      { score: 3, text: '不太滿意' },
+      { score: 4, text: '非常不滿意' }
+    ]
+  },
+  {
+    id: 11, section: 1, sectionName: '修復式睡眠',
+    text: '白天您會覺得很累、沒有精神嗎？',
+    options: [
+      { score: 0, text: '完全不會，精神很好' },
+      { score: 1, text: '很少這樣' },
+      { score: 2, text: '有時候會' },
+      { score: 3, text: '經常感到疲倦' },
+      { score: 4, text: '幾乎每天都很累' }
+    ]
+  },
+  // Section 3: 壓力管理 (pillar index 2)
+  {
+    id: 12, section: 2, sectionName: '壓力管理',
+    text: '這一週，您感到緊張不安、焦慮或煩躁？',
+    options: [
+      { score: 0, text: '完全沒有' },
+      { score: 1, text: '幾天有一點點' },
+      { score: 2, text: '超過一半的時間' },
+      { score: 3, text: '幾乎每天都有' },
+      { score: 4, text: '每天都非常嚴重' }
+    ]
+  },
+  {
+    id: 13, section: 2, sectionName: '壓力管理',
+    text: '無法停止或控制擔心某些事情？',
+    options: [
+      { score: 0, text: '完全沒有' },
+      { score: 1, text: '幾天有一點' },
+      { score: 2, text: '超過一半的時間' },
+      { score: 3, text: '幾乎每天' },
+      { score: 4, text: '每天都是' }
+    ]
+  },
+  {
+    id: 14, section: 2, sectionName: '壓力管理',
+    text: '覺得難以放鬆下來、讓自己喘口氣？',
+    options: [
+      { score: 0, text: '完全沒有' },
+      { score: 1, text: '幾天' },
+      { score: 2, text: '超過一半的時間' },
+      { score: 3, text: '幾乎每天' },
+      { score: 4, text: '每天都是' }
+    ]
+  },
+  {
+    id: 15, section: 2, sectionName: '壓力管理',
+    text: '感到心情低落、沮喪或絕望？',
+    options: [
+      { score: 0, text: '完全沒有' },
+      { score: 1, text: '幾天有一點' },
+      { score: 2, text: '超過一半的時間' },
+      { score: 3, text: '幾乎每天' },
+      { score: 4, text: '每天都是' }
+    ]
+  },
+  {
+    id: 16, section: 2, sectionName: '壓力管理',
+    text: '對原本感興趣的事情失去興趣或樂趣？',
+    options: [
+      { score: 0, text: '完全沒有' },
+      { score: 1, text: '幾天' },
+      { score: 2, text: '超過一半的時間' },
+      { score: 3, text: '幾乎每天' },
+      { score: 4, text: '每天都是' }
+    ]
+  },
+  {
+    id: 17, section: 2, sectionName: '壓力管理',
+    text: '有傷害自己或覺得不如死去的想法？',
+    options: [
+      { score: 0, text: '完全沒有' },
+      { score: 1, text: '偶爾一閃而過' },
+      { score: 2, text: '有時候有' },
+      { score: 3, text: '常常有' },
+      { score: 4, text: '幾乎每天都有' }
+    ]
+  },
+  // Section 4: 均衡飲食 (pillar index 3)
+  {
+    id: 18, section: 3, sectionName: '均衡飲食',
+    text: '這一週您一天吃幾餐正餐？',
+    options: [
+      { score: 0, text: '規律三餐（每天）' },
+      { score: 1, text: '通常兩餐' },
+      { score: 2, text: '通常只吃一餐' },
+      { score: 3, text: '用餐時間很不規律' },
+      { score: 4, text: '幾乎不吃正餐' }
+    ]
+  },
+  {
+    id: 19, section: 3, sectionName: '均衡飲食',
+    text: '每天有攝取蔬菜和水果嗎？',
+    options: [
+      { score: 0, text: '每天至少 3 份（充足）' },
+      { score: 1, text: '每天 1-2 份' },
+      { score: 2, text: '偶爾才吃' },
+      { score: 3, text: '很少吃' },
+      { score: 4, text: '幾乎不吃蔬果' }
+    ]
+  },
+  {
+    id: 20, section: 3, sectionName: '均衡飲食',
+    text: '這一週常吃油炸食物、加工食品或含糖飲料嗎？',
+    options: [
+      { score: 0, text: '幾乎不吃（0-1 次）' },
+      { score: 1, text: '偶爾（每週 1-2 次）' },
+      { score: 2, text: '每週 3-4 次' },
+      { score: 3, text: '幾乎每天都有' },
+      { score: 4, text: '每天多次' }
+    ]
+  },
+  {
+    id: 21, section: 3, sectionName: '均衡飲食',
+    text: '每天喝水的量夠嗎？',
+    options: [
+      { score: 0, text: '足夠（8 杯以上）' },
+      { score: 1, text: '差不多（6-8 杯）' },
+      { score: 2, text: '有點少（4-6 杯）' },
+      { score: 3, text: '很少（2-4 杯）' },
+      { score: 4, text: '幾乎不喝水' }
+    ]
+  },
+  // Section 5: 規律運動 (pillar index 4)
+  {
+    id: 22, section: 4, sectionName: '規律運動',
+    text: '這一週有幾天做了至少 30 分鐘的運動？',
+    options: [
+      { score: 0, text: '5 天以上（非常規律）' },
+      { score: 1, text: '3-4 天' },
+      { score: 2, text: '1-2 天' },
+      { score: 3, text: '不到 1 天（很少）' },
+      { score: 4, text: '完全沒有運動' }
+    ]
+  },
+  {
+    id: 23, section: 4, sectionName: '規律運動',
+    text: '運動過後心情和精神有變好嗎？',
+    options: [
+      { score: 0, text: '明顯變好很多' },
+      { score: 1, text: '有些改善' },
+      { score: 2, text: '沒什麼差別' },
+      { score: 3, text: '不確定（這週運動很少）' },
+      { score: 4, text: '沒有運動' }
+    ]
+  },
+  {
+    id: 24, section: 4, sectionName: '規律運動',
+    text: '這一週您整體的體力和活力如何？',
+    options: [
+      { score: 0, text: '很好，精力充沛' },
+      { score: 1, text: '還不錯' },
+      { score: 2, text: '普通' },
+      { score: 3, text: '常常感到疲倦' },
+      { score: 4, text: '非常疲倦，幾乎沒有活力' }
+    ]
+  },
+  // Section 6: 正向社交連結 (pillar index 5)
+  {
+    id: 25, section: 5, sectionName: '正向社交連結',
+    text: '您有可以信任、在您需要時願意幫助您的人嗎？',
+    options: [
+      { score: 0, text: '有很多這樣的人' },
+      { score: 1, text: '有幾個人' },
+      { score: 2, text: '只有 1-2 個人' },
+      { score: 3, text: '不太確定' },
+      { score: 4, text: '沒有這樣的人' }
+    ]
+  },
+  {
+    id: 26, section: 5, sectionName: '正向社交連結',
+    text: '這一週您有參加支持性團體聚會或社區活動嗎？',
+    options: [
+      { score: 0, text: '每週都積極參加' },
+      { score: 1, text: '這週參加了 1 次' },
+      { score: 2, text: '沒去，但有計劃下週去' },
+      { score: 3, text: '這週沒參加' },
+      { score: 4, text: '不知道有這樣的活動' }
+    ]
+  },
+  {
+    id: 27, section: 5, sectionName: '正向社交連結',
+    text: '這一週您與家人或朋友的關係如何？',
+    options: [
+      { score: 0, text: '很好，互動頻繁且正向' },
+      { score: 1, text: '還不錯' },
+      { score: 2, text: '普通，沒什麼特別' },
+      { score: 3, text: '有些緊張或衝突' },
+      { score: 4, text: '很差，或幾乎沒有聯絡' }
+    ]
+  },
+  {
+    id: 28, section: 5, sectionName: '正向社交連結',
+    text: '您有多常感到孤單或寂寞？',
+    options: [
+      { score: 0, text: '完全不會' },
+      { score: 1, text: '很少' },
+      { score: 2, text: '有時候' },
+      { score: 3, text: '經常' },
+      { score: 4, text: '時時刻刻都感到孤單' }
+    ]
+  },
+  {
+    id: 29, section: 5, sectionName: '正向社交連結',
+    text: '這一週您有定期與個管師或醫療團隊聯繫嗎？',
+    options: [
+      { score: 0, text: '有定期聯繫' },
+      { score: 1, text: '偶爾聯繫' },
+      { score: 2, text: '很少聯繫' },
+      { score: 3, text: '幾乎沒有聯繫' },
+      { score: 4, text: '完全沒有聯繫' }
+    ]
+  },
+  {
+    id: 30, section: 5, sectionName: '正向社交連結',
+    text: '這一週您覺得生活有意義、有價值感嗎？',
+    options: [
+      { score: 0, text: '非常有意義、很充實' },
+      { score: 1, text: '有意義' },
+      { score: 2, text: '普通，還好' },
+      { score: 3, text: '不太有意義' },
+      { score: 4, text: '感覺生活沒有意義' }
+    ]
+  }
+];
+
+const PILLAR_INFO = [
+  { name: '危害物質管理', emoji: '🔍', color: '#E74C3C', max: 24, questions: [1,2,3,4,5,6] },
+  { name: '修復式睡眠', emoji: '😴', color: '#3498DB', max: 20, questions: [7,8,9,10,11] },
+  { name: '壓力管理', emoji: '🧘', color: '#9B59B6', max: 24, questions: [12,13,14,15,16,17] },
+  { name: '均衡飲食', emoji: '🥦', color: '#27AE60', max: 16, questions: [18,19,20,21] },
+  { name: '規律運動', emoji: '🏃', color: '#F39C12', max: 12, questions: [22,23,24] },
+  { name: '正向社交連結', emoji: '🤝', color: '#1ABC9C', max: 24, questions: [25,26,27,28,29,30] }
+];
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function goBack() {
+  if (confirm('確定要離開問卷嗎？您的答案將不會被儲存。')) {
+    showPage('page-welcome');
+  }
+}
+
+// ══════════════════════════════════════════
+// REMINDER SYSTEM
+// ══════════════════════════════════════════
+function checkReminder() {
+  const data = loadData();
+  const reminder = data.reminder;
+  if (!reminder.enabled) return;
+  
+  const now = new Date();
+  const today = now.getDay(); // 0=Sun,1=Mon,...
+  const patientName = localStorage.getItem('alma_w_current_patient') || '';
+  
+  // Check if today is reminder day
+  if (parseInt(reminder.day) !== today) {
+    document.getElementById('reminder-badge').style.display = 'none';
+    return;
+  }
+  
+  // Check if already filled this week
+  const lastFilled = reminder.lastFilledDate ? new Date(reminder.lastFilledDate) : null;
+  if (lastFilled) {
+    const diffDays = Math.floor((now - lastFilled) / (1000 * 60 * 60 * 24));
+    if (diffDays < 7) {
+      document.getElementById('reminder-badge').style.display = 'none';
+      return;
+    }
+  }
+  
+  document.getElementById('reminder-badge').style.display = 'inline-flex';
+  updateReminderInfo(data);
+}
+
+function updateReminderInfo(data) {
+  const days = ['日','一','二','三','四','五','六'];
+  const info = document.getElementById('reminder-info');
+  const status = document.getElementById('reminder-status');
+  if (data.reminder.enabled) {
+    const d = data.reminder.day !== undefined ? data.reminder.day : 1;
+    status.textContent = `✅ 已設定每週${days[d]}提醒填寫`;
+    info.textContent = data.reminder.lastFilledDate
+      ? `上次填寫：${new Date(data.reminder.lastFilledDate).toLocaleDateString('zh-TW')}`
+      : '尚未有填寫紀錄';
+  } else {
+    status.textContent = '設定每週提醒，系統將在您開啟頁面時提示您填寫。';
+    info.textContent = '';
+  }
+}
+
+function setReminder() {
+  const data = loadData();
+  const day = parseInt(document.getElementById('reminder-day').value);
+  data.reminder = { enabled: true, day, lastFilledDate: data.reminder.lastFilledDate || null };
+  saveData(data);
+  updateReminderInfo(data);
+  showAlert('✅', '提醒設定成功', '每週提醒已設定完成！');
+}
+
+// ══════════════════════════════════════════
+// QUESTIONNAIRE
+// ══════════════════════════════════════════
+let currentAnswers = {};
+
+function startQuestionnaire() {
+  const name = document.getElementById('patient-name').value.trim();
+  if (!name) {
+    showAlert('⚠️', '請填寫姓名', '請先輸入您的姓名或暱稱再開始問卷。');
+    return;
+  }
+  
+  localStorage.setItem('alma_w_current_patient', name);
+  localStorage.setItem('alma_w_current_id', document.getElementById('patient-id').value.trim());
+  
+  currentAnswers = {};
+  renderQuestionnaire();
+  document.getElementById('q-patient-name-display').textContent = name + ' 的本週問卷';
+  showPage('page-questionnaire');
+}
+
+const SECTION_INTROS = [
+  "我們想了解您這一週真實的狀況。<br>無論結果如何，誠實回答都是勇敢的第一步。",
+  "好的睡眠是身體修復的關鍵，<br>讓我們一起了解您這週睡得如何。",
+  "情緒和壓力是影響飲酒的重要因素。<br>這些問題可能有點敏感，但您的真實感受對我們很重要。<br>您不需要獨自承受這些唷 💜",
+  "好的飲食能幫助身體修復，也能減少飲酒的渴望。<br>讓我們看看您這週吃得如何！",
+  "運動不一定要很激烈，散步、做家事都算！<br>讓我們看看您這週動了多少。",
+  "人際關係也是復原最重要的力量之一。<br>讓我們了解您這週的社交狀況唷。"
+];
+
+function renderQuestionnaire() {
+  const data = loadData();
+  const questions = data.questions;
+  const container = document.getElementById('questionnaire-container');
+  container.innerHTML = '';
+  
+  let currentSection = -1;
+  
+  questions.forEach((q, idx) => {
+    if (q.section !== currentSection) {
+      currentSection = q.section;
+      const pi = PILLAR_INFO[q.section];
+      const secDiv = document.createElement('div');
+      secDiv.className = 'section-header animate-in';
+      secDiv.style.borderLeftColor = pi.color;
+      secDiv.innerHTML = `
+        <div class="section-num">第${['一','二','三','四','五','六'][q.section]}部分</div>
+        <h3>${pi.emoji} ${pi.name}</h3>
+        <p style="font-size:14px;color:#4A5568;margin-top:8px;line-height:1.7">${SECTION_INTROS[q.section]}</p>
+        <p style="font-size:12px;color:#A0AEC0;margin-top:6px">滿分 ${pi.max} 分，共 ${pi.questions.length} 題</p>
+      `;
+      container.appendChild(secDiv);
+    }
+    
+    const qDiv = document.createElement('div');
+    qDiv.className = 'question-card animate-in';
+    qDiv.id = `q-card-${q.id}`;
+    
+    const optionsHTML = q.options.map((opt, oi) => `
+      <li class="option-item">
+        <input type="radio" name="q${q.id}" value="${opt.score}" id="q${q.id}_opt${oi}"
+          class="option-input" onchange="onAnswer(${q.id}, ${opt.score})">
+        <label for="q${q.id}_opt${oi}" class="option-label">
+          <span class="option-score">${opt.score}</span>
+          <span>${opt.text}</span>
+        </label>
+      </li>
+    `).join('');
+    
+    qDiv.innerHTML = `
+      <div class="question-num">第 ${idx + 1} 題 / ${questions.length} 題</div>
+      <div class="question-text">${q.text}</div>
+      <ul class="options-list">${optionsHTML}</ul>
+    `;
+    
+    container.appendChild(qDiv);
+  });
+  
+  const supportDiv = document.createElement('div');
+  supportDiv.style.cssText = 'background:#f0fff8;border-radius:14px;padding:14px 16px;margin-top:8px;border-left:4px solid #1ABC9C;margin-bottom:8px';
+  supportDiv.innerHTML = `
+    <div style="font-size:13px;color:#276749;font-weight:600;margin-bottom:4px">💜 您不需要獨自面對這一切</div>
+    <div style="font-size:12px;color:#4A5568;line-height:1.7">如果現在需要幫助，請撥打：<br>📞 <strong>1925</strong> 安心專線 ／ 📞 <strong>1995</strong> 生命線（24 小時）</div>
+  `;
+  container.appendChild(supportDiv);
+
+  updateProgress();
+}
+
+function onAnswer(qId, score) {
+  currentAnswers[qId] = score;
+  const card = document.getElementById(`q-card-${qId}`);
+  if (card) card.classList.add('answered');
+  updateProgress();
+}
+
+function updateProgress() {
+  const data = loadData();
+  const total = data.questions.length;
+  const answered = Object.keys(currentAnswers).length;
+  const pct = Math.round((answered / total) * 100);
+  
+  document.getElementById('progress-text').textContent = `${answered} / ${total} 題`;
+  document.getElementById('progress-pct').textContent = `${pct}%`;
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+function submitQuestionnaire() {
+  const data = loadData();
+  const total = data.questions.length;
+  const answered = Object.keys(currentAnswers).length;
+  
+  if (answered < total) {
+    const unanswered = total - answered;
+    showAlert('⚠️', `尚有 ${unanswered} 題未回答`, `請完成所有題目後再提交。您還剩 ${unanswered} 題沒有作答。`);
+    return;
+  }
+  
+  // Calculate scores
+  const pillarScores = PILLAR_INFO.map((pi, idx) => {
+    const score = pi.questions.reduce((sum, qId) => sum + (currentAnswers[qId] || 0), 0);
+    return { ...pi, score };
+  });
+  const totalScore = pillarScores.reduce((s, p) => s + p.score, 0);
+  
+  const record = {
+    id: Date.now(),
+    patientName: localStorage.getItem('alma_w_current_patient') || '匿名',
+    patientId: localStorage.getItem('alma_w_current_id') || '',
+    date: new Date().toISOString(),
+    answers: { ...currentAnswers },
+    pillarScores: pillarScores.map(p => ({ name: p.name, score: p.score, max: p.max })),
+    totalScore,
+    totalMax: 120
+  };
+  
+  data.records.push(record);
+  
+  // Update reminder last filled date
+  data.reminder.lastFilledDate = new Date().toISOString();
+  saveData(data);
+  
+  // Ensure patient exists in list
+  ensurePatientExists(record.patientName, record.patientId);
+  
+  showResults(record);
+}
+
+function ensurePatientExists(name, pid) {
+  const data = loadData();
+  const key = name.toLowerCase().trim();
+  const exists = data.patients.find(p => p.name.toLowerCase().trim() === key);
+  if (!exists) {
+    data.patients.push({
+      id: pid || 'P' + Date.now(),
+      name: name,
+      addedAt: new Date().toISOString()
+    });
+    saveData(data);
+  }
+}
+
+// ══════════════════════════════════════════
+// RESULTS
+// ══════════════════════════════════════════
+let radarChartInstance = null;
+let personalTrendChartInstance = null;
+
+function showResults(record) {
+  showPage('page-results');
+  
+  document.getElementById('result-date-display').textContent =
+    new Date(record.date).toLocaleDateString('zh-TW', { year:'numeric', month:'long', day:'numeric', weekday:'long' });
+  
+  // Score hero
+  const healthPct = Math.round((1 - record.totalScore / record.totalMax) * 100);
+  let grade, gradeColor;
+  if (healthPct >= 70) { grade = '狀態良好 🌟'; gradeColor = '#27AE60'; }
+  else if (healthPct >= 45) { grade = '需要關注 ⚠️'; gradeColor = '#F39C12'; }
+  else { grade = '需要加強支持 🆘'; gradeColor = '#E74C3C'; }
+  
+  document.getElementById('score-hero-section').innerHTML = `
+    <div class="score-hero">
+      <div style="font-size:13px;opacity:0.8;margin-bottom:4px">本週總分（越低越好）</div>
+      <div class="total-score">${record.totalScore}</div>
+      <div class="total-max">/ ${record.totalMax}</div>
+      <div style="margin-top:10px;font-size:16px;font-weight:700;color:${gradeColor}">${grade}</div>
+      <div style="margin-top:6px;font-size:13px;opacity:0.85">健康指數 ${healthPct}%</div>
+    </div>
+  `;
+  
+  // Pillar scores
+  const pillarHTML = record.pillarScores.map((p, i) => {
+    const pi = PILLAR_INFO[i];
+    const pct = Math.round((p.score / p.max) * 100);
+    return `
+      <div class="pillar-score-item">
+        <div class="emoji">${pi.emoji}</div>
+        <div class="name">${p.name}</div>
+        <div class="score" style="color:${pi.color}">${p.score}</div>
+        <div class="max">/ ${p.max}</div>
+        <div class="bar"><div class="bar-fill" style="width:${pct}%;background:${pi.color}"></div></div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('pillar-scores-section').innerHTML = `<div class="pillar-scores">${pillarHTML}</div>`;
+  
+  // Radar chart
+  if (radarChartInstance) radarChartInstance.destroy();
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  const healthScores = record.pillarScores.map((p, i) =>
+    Math.round((1 - p.score / PILLAR_INFO[i].max) * 100)
+  );
+  radarChartInstance = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: PILLAR_INFO.map(p => p.emoji + ' ' + p.name),
+      datasets: [{
+        label: '健康指數',
+        data: healthScores,
+        backgroundColor: 'rgba(74, 144, 217, 0.25)',
+        borderColor: '#4A90D9',
+        borderWidth: 2.5,
+        pointBackgroundColor: PILLAR_INFO.map(p => p.color),
+        pointRadius: 5,
+        pointHoverRadius: 7
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { stepSize: 20, font: { size: 10 } },
+          pointLabels: { font: { size: 11 }, color: '#4A5568' },
+          grid: { color: 'rgba(0,0,0,0.07)' }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `健康指數：${ctx.raw}%`
+          }
+        }
+      }
+    }
+  });
+  
+  // Interpretation
+  const interpretations = record.pillarScores.map((p, i) => {
+    const pi = PILLAR_INFO[i];
+    const pct = Math.round((p.score / p.max) * 100);
+    let level, cls, tip;
+    if (pct <= 25) { level = '良好'; cls = 'interp-excellent'; tip = '請繼續保持！'; }
+    else if (pct <= 60) { level = '需要注意'; cls = 'interp-good'; tip = '這個面向有進步空間，可與個管師討論。'; }
+    else { level = '需要協助'; cls = 'interp-moderate'; tip = '建議與醫療團隊討論，制定改善計畫。'; }
+    return `
+      <div class="interpretation-card ${cls}">
+        <strong>${pi.emoji} ${p.name}</strong>：${level}
+        <div style="font-size:13px;margin-top:4px;color:var(--text-light)">${tip}</div>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('interpretation-section').innerHTML = `
+    <div class="card">
+      <div class="card-title">💡 各支柱解讀</div>
+      ${interpretations}
+    </div>
+  `;
+  
+  // Personal trend chart
+  renderPersonalTrend(record.patientName);
+}
+
+function renderPersonalTrend(patientName) {
+  const data = loadData();
+  const records = data.records.filter(r => r.patientName === patientName)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(-10);
+  
+  if (personalTrendChartInstance) personalTrendChartInstance.destroy();
+  const ctx = document.getElementById('personalTrendChart').getContext('2d');
+  
+  if (records.length < 2) {
+    ctx.font = '14px sans-serif';
+    ctx.fillStyle = '#718096';
+    ctx.textAlign = 'center';
+    ctx.fillText('需要至少 2 次填寫記錄才能顯示趨勢', ctx.canvas.width/2, 140);
+    return;
+  }
+  
+  const labels = records.map(r => new Date(r.date).toLocaleDateString('zh-TW', { month:'short', day:'numeric' }));
+  const healthIndices = records.map(r => Math.round((1 - r.totalScore / r.totalMax) * 100));
+  
+  personalTrendChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: '整體健康指數 (%)',
+        data: healthIndices,
+        borderColor: '#4A90D9',
+        backgroundColor: 'rgba(74, 144, 217, 0.15)',
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 5,
+        pointHoverRadius: 7
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { min: 0, max: 100, ticks: { stepSize: 20 } },
+        x: { ticks: { font: { size: 11 } } }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// HISTORY (Personal)
+// ══════════════════════════════════════════
+let historyLineChartInstance = null;
+
+function viewHistory() {
+  const name = document.getElementById('patient-name').value.trim() ||
+               localStorage.getItem('alma_w_current_patient') || '';
+  if (!name) {
+    showAlert('⚠️', '請先輸入姓名', '請先在首頁輸入您的姓名，再查看歷史紀錄。');
+    return;
+  }
+  renderHistory(name);
+  showPage('page-history');
+}
+
+function renderHistory(patientName) {
+  document.getElementById('history-patient-label').textContent = patientName + ' 的歷史紀錄';
+  const data = loadData();
+  const records = data.records.filter(r => r.patientName === patientName)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  // List
+  const listEl = document.getElementById('history-list');
+  if (records.length === 0) {
+    listEl.innerHTML = '<div class="no-data"><div class="icon">📭</div>尚無填寫紀錄</div>';
+  } else {
+    listEl.innerHTML = records.map(r => {
+      const hi = Math.round((1 - r.totalScore / r.totalMax) * 100);
+      const badge = hi >= 70 ? 'badge-green' : hi >= 45 ? 'badge-yellow' : 'badge-red';
+      return `
+        <div class="history-item" onclick="showRecordDetail(${r.id})">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="history-date">📅 ${new Date(r.date).toLocaleDateString('zh-TW', {year:'numeric',month:'long',day:'numeric'})}</div>
+            <span class="badge ${badge}">健康指數 ${hi}%</span>
+          </div>
+          <div class="history-score" style="margin-top:4px">總分：${r.totalScore} / 120</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+            ${r.pillarScores.map((p,i) => `<span class="badge badge-blue">${PILLAR_INFO[i].emoji} ${p.score}</span>`).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  // Line chart
+  if (historyLineChartInstance) historyLineChartInstance.destroy();
+  const ctx = document.getElementById('historyLineChart').getContext('2d');
+  
+  if (records.length < 2) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.font = '13px sans-serif'; ctx.fillStyle = '#718096'; ctx.textAlign = 'center';
+    ctx.fillText('需要至少 2 次填寫記錄才能顯示進步曲線', ctx.canvas.width/2, 150);
+    return;
+  }
+  
+  const sortedRecords = [...records].reverse();
+  const labels = sortedRecords.map(r => new Date(r.date).toLocaleDateString('zh-TW', { month:'short', day:'numeric' }));
+  
+  const datasets = PILLAR_INFO.map((pi, idx) => ({
+    label: pi.emoji + ' ' + pi.name,
+    data: sortedRecords.map(r => Math.round((1 - r.pillarScores[idx].score / pi.max) * 100)),
+    borderColor: pi.color,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    tension: 0.4,
+    pointRadius: 3
+  }));
+  
+  historyLineChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        y: { min: 0, max: 100, ticks: { stepSize: 25 },
+          title: { display: true, text: '健康指數 (%)' } },
+        x: { ticks: { font: { size: 10 } } }
+      },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { font: { size: 11 }, padding: 10, boxWidth: 14 }
+        }
+      }
+    }
+  });
+}
+
+function showRecordDetail(recordId) {
+  const data = loadData();
+  const record = data.records.find(r => r.id === recordId);
+  if (!record) return;
+  
+  const content = document.getElementById('modal-detail-content');
+  const healthPct = Math.round((1 - record.totalScore / record.totalMax) * 100);
+  
+  content.innerHTML = `
+    <button class="modal-close" onclick="closeModal('modal-detail')">✕</button>
+    <h3 class="modal-title">📊 填寫詳情</h3>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:14px">
+      ${new Date(record.date).toLocaleString('zh-TW')}
+    </p>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div><span style="font-size:32px;font-weight:900;color:var(--primary)">${record.totalScore}</span>
+      <span style="color:var(--text-light)">/120</span></div>
+      <div style="font-size:20px;font-weight:700;color:${healthPct>=70?'var(--success)':healthPct>=45?'var(--warning)':'var(--danger)'}">
+        健康指數 ${healthPct}%</div>
+    </div>
+    ${record.pillarScores.map((p, i) => {
+      const pi = PILLAR_INFO[i];
+      const pct = Math.round((p.score / p.max) * 100);
+      return `
+        <div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:4px">
+            <span>${pi.emoji} ${p.name}</span>
+            <span style="color:${pi.color}">${p.score}/${p.max}</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" style="width:${pct}%;background:${pi.color}"></div>
+          </div>
+        </div>
+      `;
+    }).join('')}
+  `;
+  
+  document.getElementById('modal-detail').classList.add('show');
+}
+
+// ══════════════════════════════════════════
+// ADMIN LOGIN
+// ══════════════════════════════════════════
+function adminLogin() {
+  const pw = document.getElementById('admin-password').value;
+  const data = loadData();
+  if (pw === (data.password || DEFAULT_PASSWORD)) {
+    document.getElementById('admin-password').value = '';
+    showPage('page-admin');
+    loadAdminDashboard();
+  } else {
+    showAlert('🔐', '密碼錯誤', '請輸入正確的管理員密碼。預設密碼：almaw2024');
+  }
+}
+
+function adminLogout() {
+  showPage('page-welcome');
+}
+
+// ══════════════════════════════════════════
+// ADMIN TABS
+// ══════════════════════════════════════════
+function switchAdminTab(tab) {
+  ['dashboard','patients','comparison','trends','editor','settings'].forEach(t => {
+    document.getElementById(`admin-tab-${t}`).style.display = 'none';
+    const btn = document.getElementById(`atab-${t}`);
+    if (btn) btn.classList.remove('active');
+  });
+  document.getElementById(`admin-tab-${tab}`).style.display = 'block';
+  const activeBtn = document.getElementById(`atab-${tab}`);
+  if (activeBtn) activeBtn.classList.add('active');
+  
+  if (tab === 'dashboard') loadAdminDashboard();
+  else if (tab === 'patients') renderPatientsTable();
+  else if (tab === 'comparison') renderComparison();
+  else if (tab === 'trends') renderTrendPatientSelect();
+  else if (tab === 'editor') renderQuestionEditor();
+}
+
+// ══════════════════════════════════════════
+// ADMIN DASHBOARD
+// ══════════════════════════════════════════
+let adminRadarChartInst = null;
+let adminTrendChartInst = null;
+
+function loadAdminDashboard() {
+  const data = loadData();
+  const patients = data.patients;
+  const records = data.records;
+  
+  // Summary cards
+  const thisWeek = new Date(); thisWeek.setDate(thisWeek.getDate() - 7);
+  const recentRecords = records.filter(r => new Date(r.date) >= thisWeek);
+  const allScores = records.map(r => Math.round((1-r.totalScore/r.totalMax)*100));
+  const avgHealth = allScores.length > 0 ? Math.round(allScores.reduce((a,b)=>a+b,0)/allScores.length) : 0;
+  
+  // Count high-risk records (health < 45%)
+  const riskPatients = [...new Set(records.filter(r => {
+    const hi = Math.round((1-r.totalScore/r.totalMax)*100);
+    return hi < 45;
+  }).map(r => r.patientName))];
+  
+  document.getElementById('admin-summary-cards').innerHTML = `
+    <div class="card" style="text-align:center;padding:16px;margin-bottom:0">
+      <div style="font-size:32px;font-weight:900;color:var(--primary)">${patients.length}</div>
+      <div style="font-size:12px;color:var(--text-light)">👥 追蹤個案</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;margin-bottom:0">
+      <div style="font-size:32px;font-weight:900;color:var(--secondary)">${records.length}</div>
+      <div style="font-size:12px;color:var(--text-light)">📝 總填寫次數</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;margin-bottom:0">
+      <div style="font-size:32px;font-weight:900;color:var(--accent)">${recentRecords.length}</div>
+      <div style="font-size:12px;color:var(--text-light)">📅 本週填寫</div>
+    </div>
+    <div class="card" style="text-align:center;padding:16px;margin-bottom:0">
+      <div style="font-size:32px;font-weight:900;color:${riskPatients.length>0?'var(--danger)':'var(--success)'}">
+        ${riskPatients.length}</div>
+      <div style="font-size:12px;color:var(--text-light)">🚨 需關注個案</div>
+    </div>
+  `;
+  
+  // Average radar chart
+  if (adminRadarChartInst) adminRadarChartInst.destroy();
+  const radarCtx = document.getElementById('adminRadarChart').getContext('2d');
+  
+  // Get latest record for each patient
+  const latestRecords = patients.map(p => {
+    const pRecords = records.filter(r => r.patientName === p.name);
+    return pRecords.sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+  }).filter(Boolean);
+  
+  if (latestRecords.length > 0) {
+    const avgPillar = PILLAR_INFO.map((pi, idx) => {
+      const avg = latestRecords.reduce((s, r) => s + r.pillarScores[idx].score, 0) / latestRecords.length;
+      return Math.round((1 - avg / pi.max) * 100);
+    });
+    
+    adminRadarChartInst = new Chart(radarCtx, {
+      type: 'radar',
+      data: {
+        labels: PILLAR_INFO.map(p => p.emoji + ' ' + p.name),
+        datasets: [{
+          label: '平均健康指數',
+          data: avgPillar,
+          backgroundColor: 'rgba(110, 198, 160, 0.25)',
+          borderColor: '#6EC6A0',
+          borderWidth: 2.5,
+          pointBackgroundColor: PILLAR_INFO.map(p => p.color),
+          pointRadius: 5
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: { r: { min:0, max:100, ticks: { stepSize:25 }, pointLabels: { font:{size:10} } } },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+  
+  // Trend chart (weekly avg)
+  if (adminTrendChartInst) adminTrendChartInst.destroy();
+  const trendCtx = document.getElementById('adminTrendChart').getContext('2d');
+  
+  if (records.length >= 2) {
+    // Group by week
+    const weeks = {};
+    records.forEach(r => {
+      const d = new Date(r.date);
+      const weekStart = new Date(d); weekStart.setDate(d.getDate() - d.getDay());
+      const key = weekStart.toLocaleDateString('zh-TW', {month:'short', day:'numeric'});
+      if (!weeks[key]) weeks[key] = [];
+      weeks[key].push(Math.round((1-r.totalScore/r.totalMax)*100));
+    });
+    
+    const labels = Object.keys(weeks).slice(-8);
+    const vals = labels.map(k => Math.round(weeks[k].reduce((a,b)=>a+b,0)/weeks[k].length));
+    
+    adminTrendChartInst = new Chart(trendCtx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: '平均健康指數 (%)',
+          data: vals,
+          backgroundColor: vals.map(v => v>=70?'rgba(39,174,96,0.7)':v>=45?'rgba(243,156,18,0.7)':'rgba(231,76,60,0.7)'),
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: { y: { min:0, max:100, ticks:{stepSize:25} } },
+        plugins: { legend: { display: false } }
+      }
+    });
+  } else {
+    trendCtx.font = '13px sans-serif'; trendCtx.fillStyle = '#718096'; trendCtx.textAlign = 'center';
+    trendCtx.fillText('資料不足，尚無法顯示趨勢', trendCtx.canvas.width/2, 140);
+  }
+}
+
+// ══════════════════════════════════════════
+// PATIENTS TABLE
+// ══════════════════════════════════════════
+function renderPatientsTable() {
+  const data = loadData();
+  const tbody = document.getElementById('patients-tbody');
+  
+  if (data.patients.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:24px">尚無個案資料</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = data.patients.map(p => {
+    const pRecords = data.records.filter(r => r.patientName === p.name);
+    const latest = pRecords.sort((a,b) => new Date(b.date)-new Date(a.date))[0];
+    const latestHi = latest ? Math.round((1-latest.totalScore/latest.totalMax)*100) : null;
+    const badgeClass = latestHi === null ? '' : latestHi >= 70 ? 'badge-green' : latestHi >= 45 ? 'badge-yellow' : 'badge-red';
+    
+    return `<tr>
+      <td><strong>${p.name}</strong></td>
+      <td><span class="badge badge-blue">${p.id}</span></td>
+      <td>${pRecords.length} 次</td>
+      <td>${latest ? new Date(latest.date).toLocaleDateString('zh-TW') : '—'}</td>
+      <td>${latestHi !== null ? `<span class="badge ${badgeClass}">${latestHi}%</span>` : '—'}</td>
+      <td>
+        <button class="btn btn-sm btn-primary" style="margin-right:4px" onclick="viewPatientHistory('${p.name}')">查看</button>
+        <button class="btn btn-sm btn-danger" onclick="deletePatient('${p.name}')">刪除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function addPatient() {
+  const name = document.getElementById('new-patient-name').value.trim();
+  const pid = document.getElementById('new-patient-id').value.trim();
+  if (!name) { showAlert('⚠️', '請輸入姓名', '個案姓名不能為空白。'); return; }
+  
+  const data = loadData();
+  if (data.patients.find(p => p.name === name)) {
+    showAlert('⚠️', '個案已存在', `「${name}」已在列表中。`); return;
+  }
+  
+  data.patients.push({ id: pid || 'P' + Date.now(), name, addedAt: new Date().toISOString() });
+  saveData(data);
+  document.getElementById('new-patient-name').value = '';
+  document.getElementById('new-patient-id').value = '';
+  renderPatientsTable();
+  showAlert('✅', '新增成功', `個案「${name}」已新增。`);
+}
+
+function deletePatient(name) {
+  if (!confirm(`確定要刪除個案「${name}」嗎？其填寫紀錄將一併刪除。`)) return;
+  const data = loadData();
+  data.patients = data.patients.filter(p => p.name !== name);
+  data.records = data.records.filter(r => r.patientName !== name);
+  saveData(data);
+  renderPatientsTable();
+}
+
+function viewPatientHistory(name) {
+  renderHistory(name);
+  showPage('page-history');
+}
+
+// ══════════════════════════════════════════
+// COMPARISON
+// ══════════════════════════════════════════
+let selectedPatients = new Set();
+
+function renderComparison() {
+  const data = loadData();
+  const selector = document.getElementById('patient-selector');
+  
+  selector.innerHTML = data.patients.map(p => `
+    <span class="patient-tag ${selectedPatients.has(p.name)?'active':''}"
+      onclick="togglePatient('${p.name}')">${p.name}</span>
+  `).join('');
+  
+  renderComparisonTable();
+}
+
+function togglePatient(name) {
+  if (selectedPatients.has(name)) selectedPatients.delete(name);
+  else selectedPatients.add(name);
+  renderComparison();
+}
+
+function renderComparisonTable() {
+  const data = loadData();
+  const selected = [...selectedPatients];
+  
+  if (selected.length === 0) {
+    document.getElementById('comparison-thead').innerHTML = '';
+    document.getElementById('comparison-tbody').innerHTML =
+      '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-light)">請選擇要比較的個案</td></tr>';
+    return;
+  }
+  
+  // Build table
+  const thead = document.getElementById('comparison-thead');
+  const tbody = document.getElementById('comparison-tbody');
+  
+  thead.innerHTML = `<tr>
+    <th>個案</th>
+    <th>填寫日期</th>
+    ${PILLAR_INFO.map(p => `<th class="pillar-th" style="background:${p.color}20;color:${p.color}">${p.emoji}<br>${p.name.replace('管理','管').replace('連結','連')}</th>`).join('')}
+    <th>總分</th>
+    <th>健康指數</th>
+  </tr>`;
+  
+  const rows = selected.map(name => {
+    const pRecords = data.records.filter(r => r.patientName === name)
+      .sort((a,b) => new Date(b.date)-new Date(a.date)).slice(0, 3);
+    
+    if (pRecords.length === 0) {
+      return `<tr><td><strong>${name}</strong></td><td colspan="9" style="color:var(--text-light)">無填寫紀錄</td></tr>`;
+    }
+    
+    return pRecords.map((r, ri) => {
+      const hi = Math.round((1-r.totalScore/r.totalMax)*100);
+      const heatClass = hi>=70?'heat-low':hi>=45?'heat-mid':'heat-high';
+      const pillarCells = r.pillarScores.map((p, i) => {
+        const pct = Math.round((p.score/PILLAR_INFO[i].max)*100);
+        const cls = pct<=25?'heat-low':pct<=60?'heat-mid':'heat-high';
+        return `<td class="${cls}">${p.score}<small>/${p.max}</small></td>`;
+      }).join('');
+      return `<tr>
+        ${ri===0?`<td rowspan="${pRecords.length}"><strong>${name}</strong></td>`:''}
+        <td style="font-size:12px">${new Date(r.date).toLocaleDateString('zh-TW')}</td>
+        ${pillarCells}
+        <td><strong>${r.totalScore}</strong></td>
+        <td class="${heatClass}"><strong>${hi}%</strong></td>
+      </tr>`;
+    }).join('');
+  }).join('');
+  
+  tbody.innerHTML = rows;
+}
+
+// ══════════════════════════════════════════
+// TREND CHARTS (Admin)
+// ══════════════════════════════════════════
+const trendChartInstances = {};
+
+function renderTrendPatientSelect() {
+  const data = loadData();
+  const select = document.getElementById('trend-patient-select');
+  const current = select.value;
+  select.innerHTML = '<option value="">--- 選擇個案 ---</option>' +
+    data.patients.map(p => `<option value="${p.name}" ${p.name===current?'selected':''}>${p.name}</option>`).join('');
+  if (current) renderTrendCharts();
+}
+
+function renderTrendCharts() {
+  const name = document.getElementById('trend-patient-select').value;
+  const container = document.getElementById('trend-charts-container');
+  
+  if (!name) { container.innerHTML = ''; return; }
+  
+  const data = loadData();
+  const records = data.records.filter(r => r.patientName === name)
+    .sort((a,b) => new Date(a.date)-new Date(b.date));
+  
+  if (records.length < 2) {
+    container.innerHTML = '<div class="alert alert-warning">此個案需要至少 2 次填寫記錄才能顯示趨勢圖。</div>';
+    return;
+  }
+  
+  const labels = records.map(r => new Date(r.date).toLocaleDateString('zh-TW', {month:'short', day:'numeric'}));
+  
+  container.innerHTML = `
+    <div class="chart-wrap">
+      <h4>📊 整體健康指數趨勢</h4>
+      <div class="chart-container"><canvas id="trend-overall"></canvas></div>
+    </div>
+    ${PILLAR_INFO.map((pi, i) => `
+      <div class="chart-wrap">
+        <h4>${pi.emoji} ${pi.name}</h4>
+        <div class="chart-container" style="height:200px"><canvas id="trend-pillar-${i}"></canvas></div>
+      </div>
+    `).join('')}
+  `;
+  
+  // Destroy old instances
+  Object.values(trendChartInstances).forEach(c => c.destroy());
+  
+  // Overall
+  const overallData = records.map(r => Math.round((1-r.totalScore/r.totalMax)*100));
+  trendChartInstances['overall'] = new Chart(
+    document.getElementById('trend-overall').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: '整體健康指數 (%)',
+          data: overallData,
+          borderColor: '#4A90D9', backgroundColor: 'rgba(74,144,217,0.15)',
+          borderWidth: 2.5, fill: true, tension: 0.4, pointRadius: 5
+        }]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        scales: { y:{min:0,max:100,ticks:{stepSize:25}} },
+        plugins: { legend:{display:false} }
+      }
+    }
+  );
+  
+  // Per pillar
+  PILLAR_INFO.forEach((pi, i) => {
+    const pillarData = records.map(r => Math.round((1-r.pillarScores[i].score/pi.max)*100));
+    trendChartInstances[`p${i}`] = new Chart(
+      document.getElementById(`trend-pillar-${i}`).getContext('2d'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: pi.name + ' 健康指數 (%)',
+            data: pillarData,
+            borderColor: pi.color, backgroundColor: pi.color+'30',
+            borderWidth: 2, fill: true, tension: 0.4, pointRadius: 4
+          }]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          scales: { y:{min:0,max:100,ticks:{stepSize:25}} },
+          plugins: { legend:{display:false} }
+        }
+      }
+    );
+  });
+}
+
+// ══════════════════════════════════════════
+// QUESTION EDITOR
+// ══════════════════════════════════════════
+function renderQuestionEditor() {
+  const data = loadData();
+  const container = document.getElementById('question-editor-container');
+  
+  container.innerHTML = data.questions.map((q, qi) => {
+    const pi = PILLAR_INFO[q.section];
+    const optHTML = q.options.map((opt, oi) => `
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+        <span style="min-width:20px;font-size:11px;color:${pi.color};font-weight:700">${opt.score}分</span>
+        <input type="text" class="form-control" value="${opt.text}"
+          id="opt_${q.id}_${oi}" style="font-size:13px;padding:7px 10px" placeholder="選項文字">
+      </div>
+    `).join('');
+    
+    return `
+      <div class="q-editor-item">
+        <div class="q-editor-header">
+          <span style="color:${pi.color}">${pi.emoji} Q${qi+1}. ${pi.name}</span>
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label class="form-label" style="font-size:11px">題目文字</label>
+          <textarea class="form-control" id="qtext_${q.id}" style="font-size:13px;min-height:60px">${q.text}</textarea>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:11px">選項（共5個，0-4分）</label>
+          ${optHTML}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function saveQuestions() {
+  const data = loadData();
+  
+  data.questions.forEach(q => {
+    const textEl = document.getElementById(`qtext_${q.id}`);
+    if (textEl) q.text = textEl.value.trim();
+    
+    q.options.forEach((opt, oi) => {
+      const optEl = document.getElementById(`opt_${q.id}_${oi}`);
+      if (optEl) opt.text = optEl.value.trim();
+    });
+  });
+  
+  saveData(data);
+  showAlert('✅', '儲存成功', '題目已更新，將套用至之後的問卷填寫。');
+}
+
+function resetQuestions() {
+  if (!confirm('確定要恢復預設題目嗎？您的自訂題目將會遺失。')) return;
+  const data = loadData();
+  data.questions = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+  saveData(data);
+  renderQuestionEditor();
+  showAlert('✅', '已恢復預設', '題目已恢復為預設值。');
+}
+
+// ══════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════
+function changePassword() {
+  const current = document.getElementById('current-pw').value;
+  const newpw = document.getElementById('new-pw').value;
+  const confirm = document.getElementById('confirm-pw').value;
+  
+  const data = loadData();
+  if (current !== (data.password || DEFAULT_PASSWORD)) {
+    showAlert('❌', '密碼錯誤', '目前密碼輸入錯誤。'); return;
+  }
+  if (newpw.length < 6) {
+    showAlert('⚠️', '密碼太短', '新密碼至少需要 6 個字元。'); return;
+  }
+  if (newpw !== confirm) {
+    showAlert('⚠️', '密碼不符', '兩次輸入的新密碼不一致。'); return;
+  }
+  
+  data.password = newpw;
+  saveData(data);
+  document.getElementById('current-pw').value = '';
+  document.getElementById('new-pw').value = '';
+  document.getElementById('confirm-pw').value = '';
+  showAlert('✅', '密碼更新成功', '後台密碼已更新。');
+}
+
+function exportData() {
+  const data = loadData();
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `alma_w_data_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function importDataClick() {
+  document.getElementById('import-file').click();
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.patients && data.records) {
+        if (confirm(`確定要匯入資料嗎？這將覆蓋現有資料。\n包含 ${data.patients.length} 位個案，${data.records.length} 筆紀錄。`)) {
+          saveData(data);
+          showAlert('✅', '匯入成功', '資料已成功匯入。');
+          loadAdminDashboard();
+        }
+      } else {
+        showAlert('❌', '格式錯誤', '無法識別此 JSON 檔案的格式。');
+      }
+    } catch(e) {
+      showAlert('❌', '解析失敗', '無法讀取此 JSON 檔案，請確認格式是否正確。');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData() {
+  if (!confirm('⚠️ 確定要清除所有資料嗎？\n\n此操作無法復原，包含所有個案資料和填寫紀錄。')) return;
+  if (!confirm('最後確認：真的要清除所有資料嗎？')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  showAlert('✅', '資料已清除', '所有資料已清除，頁面將重新載入。');
+  setTimeout(() => location.reload(), 1500);
+}
+
+// ══════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════
+function showAlert(icon, title, body) {
+  document.getElementById('modal-alert-icon').textContent = icon;
+  document.getElementById('modal-alert-title').textContent = title;
+  document.getElementById('modal-alert-body').textContent = body;
+  document.getElementById('modal-alert').classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => {
+    if (e.target === m) m.classList.remove('show');
+  });
+});
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  // Initialize data if not exists
+  const data = loadData();
+  if (!data.questions || data.questions.length === 0) {
+    data.questions = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+    saveData(data);
+  }
+  
+  // Restore patient name
+  const savedName = localStorage.getItem('alma_w_current_patient');
+  if (savedName) document.getElementById('patient-name').value = savedName;
+  
+  // Check reminder
+  checkReminder();
+  updateReminderInfo(data);
+  
+  // Set reminder day selector
+  if (data.reminder && data.reminder.day !== undefined) {
+    document.getElementById('reminder-day').value = data.reminder.day;
+  }
+  
+  // Add demo data if empty (for demonstration)
+  if (data.records.length === 0 && data.patients.length === 0) {
+    addDemoData(data);
+  }
+});
+
+function addDemoData(data) {
+  // Add 3 demo patients with records for demonstration
+  const demoPatients = ['陳小明', '林美惠', '王大偉'];
+  demoPatients.forEach(name => {
+    data.patients.push({ id: 'P' + Math.random().toString(36).substr(2,6).toUpperCase(), name, addedAt: new Date().toISOString() });
+  });
+  
+  // Add demo records (4 weeks each)
+  const now = new Date();
+  demoPatients.forEach((name, pi) => {
+    for (let w = 4; w >= 0; w--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - w * 7);
+      
+      // Gradually improving scores
+      const baseScore = [55, 45, 65][pi];
+      const improvement = w * [3, 5, 2][pi];
+      
+      const pillarScores = PILLAR_INFO.map((pillar, i) => {
+        const rawScore = Math.max(0, Math.min(pillar.max,
+          Math.round((baseScore - improvement) / 100 * pillar.max + (Math.random() - 0.5) * 4)
+        ));
+        return { name: pillar.name, score: rawScore, max: pillar.max };
+      });
+      
+      const totalScore = pillarScores.reduce((s, p) => s + p.score, 0);
+      
+      data.records.push({
+        id: Date.now() + Math.random(),
+        patientName: name,
+        patientId: '',
+        date: date.toISOString(),
+        answers: {},
+        pillarScores,
+        totalScore,
+        totalMax: 120
+      });
+    }
+  });
+  
+  saveData(data);
+}
+</script>
+</body>
+</html>
