@@ -1417,7 +1417,7 @@ function submitQuestionnaire() {
   
   // Ensure patient exists in list
   ensurePatientExists(record.patientName, record.patientId);
-  
+  sendToGoogleSheets(record);
   showResults(record);
 }
 
@@ -2302,8 +2302,36 @@ window.addEventListener('DOMContentLoaded', () => {
     addDemoData(data);
   }
 });
+// ══════════════════════════════════════════
+// GOOGLE SHEETS 上傳
+// ══════════════════════════════════════════
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6w6qP4VUOcV329fx3jOQhA9f1tKv6rjJRJayznKlpqIM-oaBlIQ8O6vFUbxZSsa30/exec';
 
-function addDemoData(data) {
+function sendToGoogleSheets(record) {
+  const healthIndex = Math.round((1 - record.totalScore / record.totalMax) * 100);
+  
+  const payload = {
+    patientName: record.patientName,
+    patientId: record.patientId || '—',
+    totalScore: record.totalScore,
+    healthIndex: healthIndex,
+    pillars: record.pillarScores.map(p => p.score)
+  };
+  
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
+    console.log('資料已上傳至 Google Sheets');
+  })
+  .catch(err => {
+    console.warn('上傳失敗（資料已儲存在本機）：', err);
+  });
+}
+function addDemoData(data) {  
   // Add 3 demo patients with records for demonstration
   const demoPatients = ['陳小明', '林美惠', '王大偉'];
   demoPatients.forEach(name => {
